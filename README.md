@@ -1,6 +1,6 @@
 ## B9Labs Academy
 
-### ETH Solidity Course
+### Certified Ethereum Developer Course
 
 #### Project 1: Splitter Contract
 
