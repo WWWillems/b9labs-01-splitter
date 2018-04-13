@@ -17,3 +17,10 @@ All Solidity contracts included are **for educational purposes only**. Please do
 #### Reference
 
     https://academy.b9lab.com/courses/course-v1:B9lab+ETH-22+2018-03/courseware/82c7df09b67c4f96818e0a32a59b6457/d5b4341029a249bdb438d5a87a9c5a94
+
+#### TODO
+- Feedback 1
+- Kill Switch
+- Unit Tests
+- Event logging
+- Web Interface
