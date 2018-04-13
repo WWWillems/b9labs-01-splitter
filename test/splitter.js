@@ -10,12 +10,11 @@ contract('Splitter', function(accounts) {
 
   var contract;
 
-  var alice;
-  var bob;
-  var carol;
+  var owner;
+  var balances;
 
   beforeEach(function() {
-    return Splitter.new(bob, carol, {from: owner})
+    return Splitter.new({from: accounts[0]})
                     .then(function(instance){
                       contract = instance;
 
