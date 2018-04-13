@@ -1,4 +1,4 @@
-﻿pragma solidity ^0.4.6;
+﻿pragma solidity ^0.4.19;
 
 contract Splitter {
     address public owner;
@@ -11,6 +11,8 @@ contract Splitter {
     function Splitter(address _recipient1, address _recipient2)
     payable
     public {
+        require(_recipient1 != address(0x0));
+        require(_recipient2 != address(0x0));
         require(_recipient1 != _recipient2);
 
         owner = msg.sender;
@@ -21,9 +23,10 @@ contract Splitter {
     // Fallback function
     function()
     public {
-
+        revert();
     }
 
+    // Updates balances for recipients when a payment is sent to this function
     function splitPayment()
     public
     payable
@@ -34,20 +37,25 @@ contract Splitter {
         balances[recipient1] += msg.value / 2;
         balances[recipient2] += msg.value / 2;
 
-        sendPayment(recipient1);
-        sendPayment(recipient2);
+        // Not sending payment here
+        // Using the Withdrawal pattern:
+        // http://solidity.readthedocs.io/en/v0.4.21/common-patterns.html
 
         return true;
     }
 
-    function sendPayment(address recipient)
-    private
+    // Recipients can use this function to withdraw their part of the payments
+    function withdrawFunds()
+    public
     returns (bool success){
-        require(msg.sender == owner);
-        require(balances[recipient] > 0);
+        uint amount = balances[msg.sender];
+        require(amount > 0);
 
-        recipient.transfer(balances[recipient]);
-        balances[recipient] = 0;
+        // Remember to zero the pending refund before
+        // sending to prevent re-entrancy attacks
+        balances[msg.sender] = 0;
+
+        msg.sender.transfer(amount);
 
         return true;
     }
