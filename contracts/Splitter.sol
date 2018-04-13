@@ -4,23 +4,14 @@ contract Splitter {
     address public owner;
     mapping (address => uint) public balances;
 
-    address public recipient1;
-    address public recipient2;
-
     event LogPayment(address indexed from, uint value);
     event LogWithdrawal(address indexed to, uint value);
 
     // Constructor
-    function Splitter(address _recipient1, address _recipient2)
+    function Splitter()
     payable
     public {
-        require(_recipient1 != address(0x0));
-        require(_recipient2 != address(0x0));
-        require(_recipient1 != _recipient2);
-
         owner = msg.sender;
-        recipient1 = _recipient1;
-        recipient2 = _recipient2;
     }
 
     // Fallback function
@@ -30,12 +21,15 @@ contract Splitter {
     }
 
     // Updates balances for recipients when a payment is sent to this function
-    function splitPayment()
+    function splitPayment(address recipient1, address recipient2)
     public
     payable
     returns (bool success){
+        require(recipient1 != address(0x0));
+        require(recipient2 != address(0x0));
+        require(recipient1 != recipient2);
+
         require(msg.value > 0);
-        require(msg.sender == owner);
         require(msg.value % 2 == 0);
 
         balances[recipient1] += msg.value / 2;
@@ -60,10 +54,9 @@ contract Splitter {
         // Remember to zero the pending refund before
         // sending to prevent re-entrancy attacks
         balances[msg.sender] = 0;
+        emit LogWithdrawal(msg.sender, amount);
 
         msg.sender.transfer(amount);
-
-        emit LogWithdrawal(msg.sender, amount);
 
         return true;
     }
