@@ -11,23 +11,53 @@ contract('Splitter', function(accounts) {
   var contract;
 
   var owner;
+  var account1;
+  var account2;
+
   var balances;
 
-  beforeEach(function() {
-    return Splitter.new({from: accounts[0]})
-                    .then(function(instance){
-                      contract = instance;
+  beforeEach('Setup contract for eacht test', async function() {
+    contract = await Splitter.new();
 
-                    // TODO
+    owner = accounts[0];
+    account1 = accounts[1];
+    account2 = accounts[2];
+  });
+
+  it("should be owned by the owner", function(){
+
+    return contract.owner({from: owner})
+                    .then(function(_owner){
+                      assert.strictEqual(owner, _owner);
+                    })
+  });
+
+  it("should verify if a sent payment is correctly being split", function(){
+    var amountToSend = 10000;
+    var expectedAmount = "" + amountToSend / 2;
+    var balance1;
+    var balance2;
+
+    return contract.splitPayment(
+        account1,
+        account2,
+        {from: owner, value: amountToSend})
+      .then(function(txReceipt){
+        //console.log('Payment receipt ' , txReceipt)
+
+        return contract.balances(account1)
+      })
+      .then(function(_balance1){
+        balance1 = _balance1;
+
+        return contract.balances(account2)
+      })
+      .then(function(_balance2){
+          balance2 = _balance2
+
+          assert.strictEqual(balance1.toString(10), expectedAmount.toString(10));
+          assert.strictEqual(balance2.toString(10), expectedAmount.toString(10));
+          assert.strictEqual(balance1.toString(10), balance2.toString(10));
     })
   });
-
-  it("should say hello", function(){
-    assert.equal(true, false, "Hello!");
-  });
-
-  it("should verify if a balance was correctly split", function(){
-    // TODO
-  });
-
 });
