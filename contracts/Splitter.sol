@@ -24,7 +24,7 @@ contract Splitter {
 
     }
 
-    function split()
+    function splitPayment()
     public
     payable
     returns (bool success){

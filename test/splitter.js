@@ -19,7 +19,7 @@ contract('Splitter', function(accounts) {
                     .then(function(instance){
                       contract = instance;
 
-                      //
+                    // TODO
     })
   });
 
@@ -28,7 +28,7 @@ contract('Splitter', function(accounts) {
   });
 
   it("should verify if a balance was correctly split", function(){
-
+    // TODO
   });
 
 });
