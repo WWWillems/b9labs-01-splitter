@@ -10,15 +10,25 @@ contract('Splitter', function(accounts) {
 
   var contract;
 
+  var alice;
+  var bob;
+  var carol;
+
   beforeEach(function() {
-    return Splitter.new()
+    return Splitter.new(bob, carol, {from: owner})
                     .then(function(instance){
                       contract = instance;
+
+                      //
     })
   });
 
   it("should say hello", function(){
     assert.equal(true, false, "Hello!");
+  });
+
+  it("should verify if a balance was correctly split", function(){
+
   });
 
 });
