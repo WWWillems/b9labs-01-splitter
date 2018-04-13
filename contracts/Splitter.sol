@@ -7,6 +7,9 @@ contract Splitter {
     address public recipient1;
     address public recipient2;
 
+    event LogPayment(address indexed from, uint value);
+    event LogWithdrawal(address indexed to, uint value);
+
     // Constructor
     function Splitter(address _recipient1, address _recipient2)
     payable
@@ -33,6 +36,7 @@ contract Splitter {
     returns (bool success){
         require(msg.value > 0);
         require(msg.sender == owner);
+        require(msg.value % 2 == 0);
 
         balances[recipient1] += msg.value / 2;
         balances[recipient2] += msg.value / 2;
@@ -40,6 +44,8 @@ contract Splitter {
         // Not sending payment here
         // Using the Withdrawal pattern:
         // http://solidity.readthedocs.io/en/v0.4.21/common-patterns.html
+
+        emit LogPayment(msg.sender, msg.value);
 
         return true;
     }
@@ -56,6 +62,8 @@ contract Splitter {
         balances[msg.sender] = 0;
 
         msg.sender.transfer(amount);
+
+        emit LogWithdrawal(msg.sender, amount);
 
         return true;
     }
