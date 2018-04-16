@@ -20,7 +20,7 @@ All Solidity contracts included are **for educational purposes only**. Please do
 
 #### TODO
 - ~~Feedback 1~~
-- Feedback 2 (Events, utility contract, ...)
+- ~~Feedback 2 (Events, utility contract, ...)~~
 - Kill Switch
 - ~~Unit Tests~~
 - ~~Event logging~~

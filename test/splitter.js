@@ -71,4 +71,41 @@ contract('Splitter', function(accounts) {
         assert.strictEqual(balance1.toString(10), balance2.toString(10));
     })
   });
+
+  it("Should fail withdrawal of funds when no funds are available for the current withdrawer.", async function(){
+    var txReceipt;
+
+    try{
+      txReceipt = await contractInstance.withdrawFunds({from: accounts[1]});
+    }catch(e){
+      assert.isDefined(e, 'Contract should revert() when no funds are available.');
+    }
+  });
+
+  it("Should allow withdrawal of funds when funds are available for the current withdrawer.", async function(){
+    var amountToSend = 10000;
+    var expectedAmount = "" + (amountToSend / 2);
+
+    // Top-up balances
+    var txReceipt = await contractInstance.splitPayment(account1, account2, {from: owner, value: amountToSend});
+    assert.strictEqual(txReceipt.receipt.status, '0x01');
+
+    try{
+      // Make sure balance is > 0
+      var preBalance = await contractInstance.balances(account1)
+      assert.strictEqual(preBalance.toString(10) > "0".toString(10), true);
+
+      // Withdraw
+      txReceipt = await contractInstance.withdrawFunds({from: account1});
+      assert.strictEqual(txReceipt.receipt.status, '0x01');
+
+      // Make sure balance has been reset to 0
+      var balance = await contractInstance.balances(account1)
+      assert.strictEqual(balance.toString(10), "0".toString(10));
+
+    }catch(e){
+      console.log(e);
+      assert.fail("Withdrawal shouldn't fail when funds are available for the current withdrawer.");
+    }
+  });
 });
