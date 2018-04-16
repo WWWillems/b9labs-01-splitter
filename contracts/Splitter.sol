@@ -6,6 +6,7 @@ contract Splitter {
 
     event LogPayment(address indexed from, uint value);
     event LogWithdrawal(address indexed to, uint value);
+    event LogKilled(address indexed by);
 
     // Constructor
     function Splitter()
@@ -64,7 +65,9 @@ contract Splitter {
     function kill()
     public {
         require(msg.sender == owner);
-        
+
+        emit LogKilled(msg.sender);
+
         selfdestruct(owner);
     }
 }
