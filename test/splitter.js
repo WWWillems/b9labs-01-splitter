@@ -8,7 +8,7 @@ var Splitter = artifacts.require('./Splitter.sol');
 
 contract('Splitter', function(accounts) {
 
-  var contract;
+  var contractInstance;
 
   var owner;
   var account1;
@@ -16,17 +16,19 @@ contract('Splitter', function(accounts) {
 
   var balances;
 
+  var event1;
+
   beforeEach('Setup contract for eacht test', async function() {
-    contract = await Splitter.new();
+    contractInstance = await Splitter.new({from: accounts[0]});
 
     owner = accounts[0];
     account1 = accounts[1];
     account2 = accounts[2];
   });
 
-  it("should be owned by the owner", function(){
+  it("should be owned by the creator", function(){
 
-    return contract.owner({from: owner})
+    return contractInstance.owner()
                     .then(function(_owner){
                       assert.strictEqual(owner, _owner);
                     })
@@ -34,30 +36,39 @@ contract('Splitter', function(accounts) {
 
   it("should verify if a sent payment is correctly being split", function(){
     var amountToSend = 10000;
-    var expectedAmount = "" + amountToSend / 2;
+    var expectedAmount = "" + (amountToSend / 2);
     var balance1;
     var balance2;
 
-    return contract.splitPayment(
+    return contractInstance.splitPayment(
         account1,
         account2,
         {from: owner, value: amountToSend})
       .then(function(txReceipt){
-        //console.log('Payment receipt ' , txReceipt)
+        //console.log('Payment receipt logs ' , txReceipt)
 
-        return contract.balances(account1)
+        try{
+          // Check if a LogPayment Event was emitted
+          var eventName = txReceipt.logs.filter(log => log.event == "LogPayment")[0].event;
+          assert.equal(eventName, "LogPayment", "LogPayment Event isn't being emitted correctly");
+        }catch(e){
+          assert.fail(null, null, `No event(s) found, are they being emitted?`);
+        }
+
+        return contractInstance.balances(account1)
       })
       .then(function(_balance1){
         balance1 = _balance1;
 
-        return contract.balances(account2)
+        assert.strictEqual(balance1.toString(10), expectedAmount.toString(10));
+
+        return contractInstance.balances(account2)
       })
       .then(function(_balance2){
-          balance2 = _balance2
+        balance2 = _balance2
 
-          assert.strictEqual(balance1.toString(10), expectedAmount.toString(10));
-          assert.strictEqual(balance2.toString(10), expectedAmount.toString(10));
-          assert.strictEqual(balance1.toString(10), balance2.toString(10));
+        assert.strictEqual(balance2.toString(10), expectedAmount.toString(10));
+        assert.strictEqual(balance1.toString(10), balance2.toString(10));
     })
   });
 });
