@@ -18,7 +18,7 @@ contract('Splitter', function(accounts) {
 
   var event1;
 
-  beforeEach('Setup contract for eacht test', async function() {
+  beforeEach('Setup contract for each test', async function() {
     contractInstance = await Splitter.new({from: accounts[0]});
 
     owner = accounts[0];
@@ -32,6 +32,19 @@ contract('Splitter', function(accounts) {
                     .then(function(_owner){
                       assert.strictEqual(owner, _owner);
                     })
+  });
+
+  it("should throw an error when an empty recipient address is passed", async function(){
+    var amountToSend = 10000;
+    var txReceipt;
+
+    try{
+      txReceipt = await contractInstance.splitPayment(account1, '', {from: owner, value: amountToSend});
+
+      assert.fail(null, null, 'Expected transaction to fail, as an empty address is being used.')
+    }catch(e){
+      assert.strictEqual(txReceipt, undefined);
+    }
   });
 
   it("should verify if a sent payment is correctly being split", function(){
