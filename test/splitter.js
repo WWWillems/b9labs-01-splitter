@@ -1,3 +1,4 @@
+//require('chai').use(require('chai-as-promised')).should();
 var Splitter = artifacts.require('./Splitter.sol');
 
 // there are 3 people: Alice, Bob and Carol.
@@ -49,7 +50,7 @@ contract('Splitter', function(accounts) {
 
   it("should verify if a sent payment is correctly being split", function(){
     var amountToSend = 10000;
-    var expectedAmount = "" + (amountToSend / 2);
+    let expectedAmount = "" + (amountToSend / 2);
     var balance1;
     var balance2;
 
@@ -93,26 +94,49 @@ contract('Splitter', function(accounts) {
   });
 
   it("Should allow withdrawal of funds when funds are available for the current withdrawer.", async function(){
-    var amountToSend = 10000;
-    var expectedAmount = "" + (amountToSend / 2);
+    var amountToSend = web3.toBigNumber(10000);
+    let expectedAmount = amountToSend.div(2);
+
+    var preBalanceRecipient = await web3.eth.getBalance(account1);
+    let expectedPostBalanceRecipient;
+
+    console.log('Recipient starting balance: ' , preBalanceRecipient.toString(10))
 
     // Top-up balances
-    var txReceipt = await contractInstance.splitPayment(account1, account2, {from: owner, value: amountToSend});
-    assert.strictEqual(txReceipt.receipt.status, '0x01');
+    var tx = await contractInstance.splitPayment(account1, account2, {from: owner, value: amountToSend});
+    var gasUsed = tx.receipt.gasUsed;
+    assert.strictEqual(tx.receipt.status, '0x01');
 
     try{
       // Make sure balance is > 0
-      var preBalance = await contractInstance.balances(account1)
-      assert.strictEqual(preBalance.toString(10) > "0".toString(10), true);
+      var availableBalance = await contractInstance.balances(account1);
+      assert.strictEqual(availableBalance.toString(10) > "0".toString(10), true);
 
       // Withdraw
-      txReceipt = await contractInstance.withdrawFunds({from: account1});
-      assert.strictEqual(txReceipt.receipt.status, '0x01');
+      tx = await contractInstance.withdrawFunds({from: account1});
+      assert.strictEqual(tx.receipt.status, '0x01');
 
-      // Make sure balance has been reset to 0
-      var balance = await contractInstance.balances(account1)
-      assert.strictEqual(balance.toString(10), "0".toString(10));
+      // Make sure recipients have received their payment
+      tx = await web3.eth.getTransaction(tx.tx);
 
+      gasPrice = tx.gasPrice;
+      gasCost = gasPrice.times(gasUsed);
+
+      //console.log('gas cost was ' , gasCost.toString(10))
+
+      expectedPostBalanceRecipient = preBalanceRecipient.minus(gasUsed).plus(expectedAmount);
+
+      var postBalance = await web3.eth.getBalance(account1)
+
+      //console.log('Updated recipient balance: ' , postBalance.toString(10))
+
+      // TODO: Fix this
+      //assert.equal(postBalance.toString(10), expectedPostBalanceRecipient.toString(10));
+      assert.strictEqual(preBalanceRecipient.plus(expectedAmount).minus(gasUsed).toString(10), postBalance.toString(10));
+
+      // Make sure recipients contract balance has been reset to 0
+      var recipientContractBalance = await contractInstance.balances(account1)
+      assert.strictEqual(recipientContractBalance.toString(10), "0".toString(10));
     }catch(e){
       console.log(e);
       assert.fail("Withdrawal shouldn't fail when funds are available for the current withdrawer.");
