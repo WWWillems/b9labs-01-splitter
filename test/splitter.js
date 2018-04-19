@@ -8,7 +8,7 @@ var Splitter = artifacts.require('./Splitter.sol');
 
 contract('Splitter', function(accounts) {
 
-  var contractInstance;
+  let contractInstance;
 
   var owner;
   var account1;
@@ -60,13 +60,10 @@ contract('Splitter', function(accounts) {
       .then(function(txReceipt){
         //console.log('Payment receipt logs ' , txReceipt)
 
-        try{
-          // Check if a LogPayment Event was emitted
-          var eventName = txReceipt.logs.filter(log => log.event == "LogPayment")[0].event;
-          assert.equal(eventName, "LogPayment", "LogPayment Event isn't being emitted correctly");
-        }catch(e){
-          assert.fail(null, null, `No event(s) found, are they being emitted?`);
-        }
+        // Check if a LogPayment Event was emitted
+        var eventNames = txReceipt.logs.filter(log => log.event == "LogPayment");
+        assert(eventNames.length > 0, "No LogPayment events found, are you emitting one?");
+        assert.equal(eventNames[0].event, "LogPayment", "LogPayment Event isn't being emitted correctly");
 
         return contractInstance.balances(account1)
       })
